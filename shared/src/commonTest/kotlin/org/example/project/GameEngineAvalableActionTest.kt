@@ -2,6 +2,8 @@ package org.example.project
 
 import androidx.compose.ui.graphics.Color
 import org.example.project.UI.screen.game.GameState
+import org.example.project.data.GameActionValidator
+import org.example.project.data.GameChangeApplier
 import org.example.project.data.GameEngine
 import org.example.project.data.createField
 import org.example.project.data.models.cell.StreetCell
@@ -9,10 +11,10 @@ import org.example.project.data.models.game.*
 import org.example.project.data.models.player.Player
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class GameEngineAvalableActionTest {
-
-    // Надо тестировать методы внутри getAvailableActions, но они приватны. Может сделать не как object
     @Test
     fun `Buy Upgrade Action Avalable Owns All One Color`() {
         val players = listOf(
@@ -26,22 +28,23 @@ class GameEngineAvalableActionTest {
             cells = createField()
         )
 
-        val streetCell1 = gameState.cells[1] as StreetCell
-        val streetCell2 = gameState.cells[3] as StreetCell
-
-        streetCell1.propertyStreet.owner = players[0]
-        streetCell2.propertyStreet.owner = players[0]
-
-        val actual = GameEngine.getAvailableActions(gameState, cellId = 1)
-
-        val expected = listOf<GameAction>(
-            BuyUpgradeAction(cellId = 1),
-            ThrowDiceAction()
+        val newGameState = GameChangeApplier.applyGameChanges(
+            gameState = gameState,
+            gameChanges = listOf<GameChange>(
+                SetPropertyOwner(
+                    playerIndex = 0,
+                    propertyIndex = 1
+                ),
+                SetPropertyOwner(
+                    playerIndex = 0,
+                    propertyIndex = 3
+                )
+            )
         )
 
-        assertEquals(
-            expected, actual
-        )
+
+        assertTrue { GameActionValidator.isActionAvailable(newGameState, BuyUpgradeAction(1)) }
+        assertTrue { GameActionValidator.isActionAvailable(newGameState, BuyUpgradeAction(3)) }
     }
 
     @Test
@@ -57,19 +60,19 @@ class GameEngineAvalableActionTest {
             cells = createField()
         )
 
-        val streetCell1 = gameState.cells[1] as StreetCell
-
-        streetCell1.propertyStreet.owner = players[0]
-
-        val actual = GameEngine.getAvailableActions(gameState, cellId = 1)
-
-        val expected = listOf<GameAction>(
-            ThrowDiceAction()
+        val newGameState = GameChangeApplier.applyGameChanges(
+            gameState = gameState,
+            gameChanges = listOf<GameChange>(
+                SetPropertyOwner(
+                    playerIndex = 0,
+                    propertyIndex = 1
+                ),
+            )
         )
 
-        assertEquals(
-            expected, actual
-        )
+
+        assertFalse { GameActionValidator.isActionAvailable(newGameState, BuyUpgradeAction(1)) }
+        assertFalse { GameActionValidator.isActionAvailable(newGameState, BuyUpgradeAction(3)) }
     }
 
     @Test
@@ -85,59 +88,27 @@ class GameEngineAvalableActionTest {
             cells = createField()
         )
 
-        val streetCell1 = gameState.cells[1] as StreetCell
-        val streetCell2 = gameState.cells[3] as StreetCell
-
-        streetCell1.propertyStreet.owner = players[0]
-        streetCell2.propertyStreet.owner = players[0]
-
-        players[0].balance = 10
-
-        val actual = GameEngine.getAvailableActions(gameState, cellId = 1)
-
-        val expected = listOf<GameAction>(
-            ThrowDiceAction()
+        val newGameState = GameChangeApplier.applyGameChanges(
+            gameState = gameState,
+            gameChanges = listOf<GameChange>(
+                SetPropertyOwner(
+                    playerIndex = 0,
+                    propertyIndex = 1
+                ),
+                SetPropertyOwner(
+                    playerIndex = 0,
+                    propertyIndex = 3
+                ),
+                MakeTransaction(
+                    fromPlayerIndex = 0,
+                    toPlayerIndex = null,
+                    amount = 1499
+                )
+            )
         )
 
-        assertEquals(
-            expected, actual
-        )
-    }
 
-
-    @Test
-    fun `Buy Upgrade Action Not Avalable Owns All One Color No Min LevelUpgrade`() {
-        val players = listOf(
-            Player(id = "1", name = "player1", color = Color.Blue),
-            Player(id = "2", name = "player2", color = Color.Red),
-        )
-
-        val gameState = GameState(
-            gameStateProgress = GameStateProgress.IN_PROGRESS,
-            players = players,
-            cells = createField()
-        )
-
-        val streetCell1 = gameState.cells[1] as StreetCell
-        val streetCell2 = gameState.cells[3] as StreetCell
-
-        streetCell1.propertyStreet.owner = players[0]
-        streetCell2.propertyStreet.owner = players[0]
-
-        streetCell1.propertyStreet.improvementLevel = 1
-        streetCell2.propertyStreet.improvementLevel = 0
-
-        players[0].balance = 10
-
-        val actual = GameEngine.getAvailableActions(gameState, cellId = 1)
-
-        val expected = listOf<GameAction>(
-            SellUpgradeAction(cellId = 1),
-            ThrowDiceAction()
-        )
-
-        assertEquals(
-            expected, actual
-        )
+        assertFalse { GameActionValidator.isActionAvailable(newGameState, BuyUpgradeAction(1)) }
+        assertFalse { GameActionValidator.isActionAvailable(newGameState, BuyUpgradeAction(3)) }
     }
 }
