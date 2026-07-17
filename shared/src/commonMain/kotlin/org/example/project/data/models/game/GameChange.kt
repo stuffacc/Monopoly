@@ -58,3 +58,7 @@ data class MakeTransaction(
     val amount: Int
 ): GameChange()
 
+data class SetRecentDices(
+    val dices: Pair<Int, Int>
+): GameChange()
+
