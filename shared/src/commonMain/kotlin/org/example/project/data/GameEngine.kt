@@ -322,9 +322,18 @@ object GameEngine {
                             propertyIndex = i
                         )
                     )
+
+                    gameChanges.add(
+                        SetUpgradeLevel(
+                            cellIndex = i,
+                            upgradeLevel = 0
+                        )
+                    )
                 }
             }
         }
+
+        // Добавить, чтобы дома пропадали
 
         gameChanges.add(
             ChangeGamePhase(
