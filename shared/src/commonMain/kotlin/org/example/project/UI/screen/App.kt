@@ -35,7 +35,7 @@ fun App() {
             EnterScreen(
                 viewModel = viewModel,
                 onNavigateToGame = { gameId ->
-                    navController.navigate("game/{$gameId}") {
+                    navController.navigate("game/$gameId") {
                         popUpTo(Screen.EnterScreen.route) { inclusive = true }
                     }
                 }
@@ -54,8 +54,7 @@ fun App() {
                 GameViewModel(gameRepository = gameRepository)
             }
 
-            var gameId = it.savedStateHandle.get<String>("gameId") ?: return@composable
-            gameId = gameId.replace("{", "").replace("}", "")
+            val gameId = it.savedStateHandle.get<String>("gameId") ?: return@composable
 
             Board(viewModel = viewModel, gameId = gameId)
         }
