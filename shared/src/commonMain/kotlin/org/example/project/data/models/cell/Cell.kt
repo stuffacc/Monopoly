@@ -4,7 +4,7 @@ sealed class Cell(val name: String)
 
 class GoCell: Cell(name = "Go")
 
-class StreetCell(var propertyStreet: PropertyStreet): Cell(name = propertyStreet.name)
+class StreetCell(val propertyStreet: PropertyStreet): Cell(name = propertyStreet.name)
 
 class CommunityChestCell: Cell(name = "Community Chest")
 

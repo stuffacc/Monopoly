@@ -14,6 +14,7 @@ import org.example.project.data.models.game.EndTurnAction
 import org.example.project.data.models.game.GameAction
 import org.example.project.data.models.game.GameChange
 import org.example.project.UI.screen.game.GameState
+import org.example.project.data.models.cell.Cell
 import org.example.project.data.models.cell.canBuyUpgrade
 import org.example.project.data.models.cell.canSellUpgrade
 import org.example.project.data.models.cell.getCellsSameColor
@@ -35,16 +36,12 @@ import kotlin.math.min
 
 object GameEngine {
     fun handle(gameState: GameState, gameAction: GameAction): GameState {
-        val newGameState = gameState.copy(
-            forceUpdate = gameState.forceUpdate + 1
-        )
-
         return when (gameAction) {
-            is ThrowDiceAction -> processThrowDiceAction(newGameState, gameAction)
-            is BuyPropertyAction -> processBuyPropertyAction(newGameState, gameAction)
-            is BuyUpgradeAction -> processBuyUpgradeAction(newGameState, gameAction)
-            is SellUpgradeAction -> processSellUpgradeAction(newGameState, gameAction)
-            is EndTurnAction -> processEndTurnAction(newGameState, gameAction)
+            is ThrowDiceAction -> processThrowDiceAction(gameState, gameAction)
+            is BuyPropertyAction -> processBuyPropertyAction(gameState, gameAction)
+            is BuyUpgradeAction -> processBuyUpgradeAction(gameState, gameAction)
+            is SellUpgradeAction -> processSellUpgradeAction(gameState, gameAction)
+            is EndTurnAction -> processEndTurnAction(gameState, gameAction)
         }
     }
 
@@ -63,7 +60,7 @@ object GameEngine {
             is StreetCell -> {
                 val cellsSameColor = getCellsSameColor(gameState, streetCell = cell)
 
-                if (!canSellUpgrade(cellsSameColor, player, cell)) {
+                if (!canSellUpgrade(cellsSameColor, gameState, cell)) {
                     return emptyList()
                 }
 
@@ -104,7 +101,7 @@ object GameEngine {
             is StreetCell -> {
                 val cellsSameColor = getCellsSameColor(gameState, streetCell = cell)
 
-                if (!canBuyUpgrade(cellsSameColor, player, cell)) {
+                if (!canBuyUpgrade(cellsSameColor, gameState, cell)) {
                     return emptyList()
                 }
 
@@ -216,7 +213,7 @@ object GameEngine {
 
         return when (cell) {
             is StreetCell -> {
-                if (cell.propertyStreet.owner != null) {
+                if (cell.propertyStreet.ownerIndex != null) {
                     return listOf(
                         ChangeGamePhase(
                             previousPhase = gameState.gameTurnPhase,
@@ -280,26 +277,48 @@ object GameEngine {
     private fun makeTransactionGameChange(gameState: GameState, gameChange: MakeTransaction): GameState {
         // TODO: Хотелось сделать чтобы gameChange были без логики,
         //  но тут скорее всего никак по-другому не сделать. Другие варианты менее красивые
-        val playerFrom = if (gameChange.fromPlayerIndex != null) gameState.players[gameChange.fromPlayerIndex] else null
-        val playerTo = if (gameChange.toPlayerIndex != null) gameState.players[gameChange.toPlayerIndex] else null
+        var playerFrom = if (gameChange.fromPlayerIndex != null) gameState.players[gameChange.fromPlayerIndex] else null
+        var playerTo = if (gameChange.toPlayerIndex != null) gameState.players[gameChange.toPlayerIndex] else null
 
         var canPayFromPlayer = gameChange.amount
 
         if (playerFrom != null) {
             canPayFromPlayer = min(playerFrom.balance, gameChange.amount)
 
-            playerFrom.balance -= canPayFromPlayer
+            playerFrom = playerFrom.copy(
+                balance = playerFrom.balance - canPayFromPlayer
+            )
         }
 
         if (playerTo != null) {
-            playerTo.balance += canPayFromPlayer
+            playerTo = playerTo.copy(
+                balance = playerTo.balance + canPayFromPlayer
+            )
         }
+
+        println()
+        println(playerTo)
+        println(playerFrom)
+        println()
+
+        val newPlayers: List<Player> = gameState.players.mapIndexed { index, player ->
+            if ((playerFrom != null) && (index == gameChange.fromPlayerIndex)) playerFrom
+            else if ((playerTo != null) && (index == gameChange.toPlayerIndex)) playerTo
+            else player
+        }
+        println(newPlayers)
+        println()
+
+
+        val newGameState = gameState.copy(
+            players = newPlayers
+        )
 
         if (canPayFromPlayer < gameChange.amount) {
-            return eliminatePlayer(gameState, gameChange.fromPlayerIndex!!)
+            return eliminatePlayer(newGameState, gameChange.fromPlayerIndex!!)
         }
 
-        return gameState
+        return newGameState
     }
 
     private fun eliminatePlayer(gameState: GameState, playerIndex: Int): GameState {
@@ -315,7 +334,7 @@ object GameEngine {
         for (i in gameState.cells.indices) {
             val cellToRemoveOwner = gameState.cells[i]
             if (cellToRemoveOwner is StreetCell) {
-                if (cellToRemoveOwner.propertyStreet.owner == gameState.players[playerIndex]) {
+                if (cellToRemoveOwner.propertyStreet.ownerIndex == playerIndex) {
                     gameChanges.add(
                         SetPropertyOwner(
                             playerIndex = null,
@@ -333,8 +352,6 @@ object GameEngine {
             }
         }
 
-        // Добавить, чтобы дома пропадали
-
         gameChanges.add(
             ChangeGamePhase(
                 previousPhase = gameState.gameTurnPhase,
@@ -347,25 +364,32 @@ object GameEngine {
 
 
     private fun setUpgradeLevelGameChange(gameState: GameState, gameChange: SetUpgradeLevel): GameState {
-        val cell = gameState.cells[gameChange.cellIndex]
-
-        when (cell) {
-            is StreetCell -> {
-                cell.propertyStreet.improvementLevel = gameChange.upgradeLevel
-            }
-
-            else -> {}
+        val newCells: List<Cell> = gameState.cells.mapIndexed { index, cell ->
+            (if ((index == gameChange.cellIndex) && (cell is StreetCell))
+                StreetCell(
+                    propertyStreet =
+                        cell.propertyStreet.copy(
+                            improvementLevel = gameChange.upgradeLevel
+                        )
+                )
+            else cell)
         }
 
-        return gameState
+        return gameState.copy(cells = newCells)
     }
 
     private fun setTurnsInJailGameChange(gameState: GameState, gameChange: SetTurnsInJail): GameState {
-        val player = gameState.players[gameChange.playerIndex]
+        val newPlayers: List<Player> = gameState.players.mapIndexed { index, player ->
+            if (index == gameChange.playerIndex)
+                player.copy(
+                    turnsInJail = gameChange.turnsInJail
+                )
+            else player
+        }
 
-        player.turnsInJail = gameChange.turnsInJail
-
-        return gameState
+        return gameState.copy(
+            players = newPlayers
+        )
     }
 
     private fun changeGameStateProgressGameChange(
@@ -384,11 +408,17 @@ object GameEngine {
     }
 
     private fun setPlayerDoubleCountGameChange(gameState: GameState, gameChange: SetPlayerDoubleCount): GameState {
-        val player = gameState.players[gameChange.playerIndex]
+        val newPlayers: List<Player> = gameState.players.mapIndexed { index, player ->
+            if (index == gameChange.playerIndex)
+                player.copy(
+                    doubleCount = gameChange.doubleCount
+                )
+            else player
+        }
 
-        player.doubleCount = gameChange.doubleCount
-
-        return gameState
+        return gameState.copy(
+            players = newPlayers
+        )
     }
 
     private fun changeGamePhaseGameChange(gameState: GameState, gameChange: ChangeGamePhase): GameState {
@@ -399,35 +429,46 @@ object GameEngine {
 
 
     private fun changePlayerStateGameChange(gameState: GameState, gameChange: ChangePlayerState): GameState {
-        val player = gameState.players[gameChange.playerIndex]
+        val newPlayers: List<Player> = gameState.players.mapIndexed { index, player ->
+            if (index == gameChange.playerIndex)
+                player.copy(
+                    playerState = gameChange.newState
+                )
+            else player
+        }
 
-        player.playerState = gameChange.newState
-
-        return gameState
+        return gameState.copy(
+            players = newPlayers
+        )
     }
 
     private fun playerMovedGameChange(gameState: GameState, gameChange: PlayerMoved): GameState {
-        val player = gameState.players[gameChange.playerIndex]
+        val newPlayers: List<Player> = gameState.players.mapIndexed { index, player ->
+            if (index == gameChange.playerIndex)
+                player.copy(
+                    position = gameChange.to
+                )
+            else player
+        }
 
-        player.position = gameChange.to
-
-        return gameState
+        return gameState.copy(
+            players = newPlayers
+        )
     }
 
     private fun setPropertyOwnerGameChange(gameState: GameState, gameChange: SetPropertyOwner): GameState {
-        val newOwner: Player? = if (gameChange.playerIndex != null) gameState.players[gameChange.playerIndex] else null
-
-        val cell = gameState.cells[gameChange.propertyIndex]
-
-        when (cell) {
-            is StreetCell -> {
-                cell.propertyStreet.owner = newOwner
-            }
-
-            else -> {}
+        val newCells: List<Cell> = gameState.cells.mapIndexed { index, cell ->
+            (if ((index == gameChange.propertyIndex) && (cell is StreetCell))
+                StreetCell(
+                    propertyStreet =
+                        cell.propertyStreet.copy(
+                            ownerIndex = gameChange.playerIndex
+                        )
+                )
+            else cell)
         }
 
-        return gameState
+        return gameState.copy(cells = newCells)
     }
 
     private fun processThrowDiceAction(gameState: GameState, gameAction: ThrowDiceAction): GameState {
@@ -481,7 +522,7 @@ object GameEngine {
 
         if (dices.first == dices.second) {
             if (player.doubleCount + 1 == 3) {
-                gameChanges.addAll(goToJail(gameState = gameState, player = player))
+                gameChanges.addAll(goToJail(gameState = gameState))
 
                 return gameChanges
 
@@ -537,7 +578,7 @@ object GameEngine {
 
         when (cell) {
             is StreetCell -> {
-                gameChanges.addAll(playerArrivedToStreetCell(gameState, player, cell))
+                gameChanges.addAll(playerArrivedToStreetCell(gameState, cell))
             }
 
             is TaxCell -> {
@@ -545,7 +586,7 @@ object GameEngine {
             }
 
             is ChanceCell, is CommunityChestCell, is GoToJailCell -> {
-                gameChanges.addAll(goToJail(gameState, player))
+                gameChanges.addAll(goToJail(gameState))
             }
 
             else -> {
@@ -573,11 +614,12 @@ object GameEngine {
         return null
     }
 
-    private fun playerArrivedToStreetCell(gameState: GameState, player: Player, cell: StreetCell): List<GameChange> {
+    private fun playerArrivedToStreetCell(gameState: GameState, cell: StreetCell): List<GameChange> {
         val gameChanges = mutableListOf<GameChange>()
-        val propertyOwner = cell.propertyStreet.owner
+        val propertyOwnerIndex = cell.propertyStreet.ownerIndex
+        val playerIndex = gameState.playerTurn
 
-        if (propertyOwner == null) {
+        if (propertyOwnerIndex == null) {
             println("propertyOwner == null")
             gameChanges.add(
                 ChangeGamePhase(
@@ -585,9 +627,7 @@ object GameEngine {
                     nextPhase = GameTurnPhase.BUY_PROPERTY
                 )
             )
-        } else if (propertyOwner != player) {
-            val propertyOwnerIndex = findPlayerIndexById(gameState.players, propertyOwner.id)
-
+        } else if (propertyOwnerIndex != playerIndex) {
             gameChanges.add(
                 MakeTransaction(
                     fromPlayerIndex = gameState.playerTurn,
@@ -690,8 +730,10 @@ object GameEngine {
     }
 
 
-    private fun goToJail(gameState: GameState, player: Player): List<GameChange> {
+    private fun goToJail(gameState: GameState): List<GameChange> {
         val gameChanges = mutableListOf<GameChange>()
+
+        val player = gameState.players[gameState.playerTurn]
 
         gameChanges.add(
             SetPlayerDoubleCount(

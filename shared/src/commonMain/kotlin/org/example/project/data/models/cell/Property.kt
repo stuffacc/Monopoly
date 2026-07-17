@@ -10,16 +10,16 @@ import kotlin.math.min
 sealed class Property(
     open val name: String,
     open val cost: Int,
-    open var owner: Player? = null
+    open val ownerIndex: Int? = null
 )
 
 data class PropertyStreet(
     override val name: String,
     override val cost: Int,
-    override var owner: Player? = null,
+    override val ownerIndex: Int? = null,
     val streetColor: Color,
-    var improvementLevel: Int = 0
-) : Property(name = name, cost = cost, owner = owner)
+    val improvementLevel: Int = 0
+) : Property(name = name, cost = cost, ownerIndex = ownerIndex)
 
 
 fun getCellsSameColor(gameState: GameState, streetCell: StreetCell): List<StreetCell> {
@@ -34,15 +34,17 @@ fun getCellsSameColor(gameState: GameState, streetCell: StreetCell): List<Street
     return cellsSameColor
 }
 
-fun ownsAllSameColor(cellsSameColor: List<StreetCell>, player: Player): Boolean {
+fun ownsAllSameColor(cellsSameColor: List<StreetCell>, gameState: GameState): Boolean {
+    val playerIndex = gameState.playerTurn
+
     return cellsSameColor.all {
-        it.propertyStreet.owner == player
+        it.propertyStreet.ownerIndex == playerIndex
     }
 }
 
 
-fun canSellUpgrade(cellsSameColor: List<StreetCell>, player: Player, cell: StreetCell): Boolean {
-    if (!ownsAllSameColor(cellsSameColor, player)) {
+fun canSellUpgrade(cellsSameColor: List<StreetCell>, gameState: GameState, cell: StreetCell): Boolean {
+    if (!ownsAllSameColor(cellsSameColor, gameState)) {
         return false
     }
 
@@ -57,8 +59,8 @@ fun canSellUpgrade(cellsSameColor: List<StreetCell>, player: Player, cell: Stree
     return (levelUpdate == maxUpgradeLevel) && (levelUpdate > 0)
 }
 
-fun canBuyUpgrade(cellsSameColor: List<StreetCell>, player: Player, cell: StreetCell): Boolean {
-    if (!ownsAllSameColor(cellsSameColor, player)) {
+fun canBuyUpgrade(cellsSameColor: List<StreetCell>, gameState: GameState, cell: StreetCell): Boolean {
+    if (!ownsAllSameColor(cellsSameColor, gameState)) {
         return false
     }
 
@@ -71,6 +73,8 @@ fun canBuyUpgrade(cellsSameColor: List<StreetCell>, player: Player, cell: Street
     }
 
     val upgradeCost = if (levelUpdate < 4) cell.propertyStreet.cost else cell.propertyStreet.cost * 2
+
+    val player = gameState.players[gameState.playerTurn]
 
     return (levelUpdate == minUpgradeLevel) && (levelUpdate < 5) && (player.balance >= upgradeCost)
 }

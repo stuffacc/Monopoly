@@ -6,9 +6,9 @@ data class Player(
     val id: String,
     val name: String,
     val color: Color,
-    var position: Int = 0,
-    var playerState: PlayerState = PlayerState.IN_GAME,
-    var balance: Int = 1500,
-    var turnsInJail: Int = 0,
-    var doubleCount: Int = 0
+    val position: Int = 0,
+    val playerState: PlayerState = PlayerState.IN_GAME,
+    val balance: Int = 1500,
+    val turnsInJail: Int = 0,
+    val doubleCount: Int = 0
 )

@@ -777,8 +777,13 @@ fun CellStreetDetailed(gameState: GameState, streetCell: StreetCell, cellHeight:
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .background(streetCell.propertyStreet.owner?.color ?: Color.White),
-            text = "Владелец: ${streetCell.propertyStreet.owner?.name ?: "нет"}",
+                .background(
+                    if (streetCell.propertyStreet.ownerIndex != null) gameState.players[streetCell.propertyStreet.ownerIndex!!].color
+                    else Color.White
+                ),
+            text = "Владелец: " +
+                    if (streetCell.propertyStreet.ownerIndex != null) gameState.players[streetCell.propertyStreet.ownerIndex!!].name
+                    else "нет",
             fontSize = 12.sp,
             textAlign = TextAlign.Center,
             maxLines = 1,

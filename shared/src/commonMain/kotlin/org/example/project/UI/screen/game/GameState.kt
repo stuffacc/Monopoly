@@ -13,7 +13,4 @@ data class GameState(
     val playerTurn: Int = 0,
     val gameTurnPhase: GameTurnPhase = GameTurnPhase.START_TURN,
     val lastDices: Pair<Int, Int> = Pair(0, 0),
-
-    // TODO: пока так, лучше везде val сделать, тогда будет без этого
-    val forceUpdate: Int = 0
 )
