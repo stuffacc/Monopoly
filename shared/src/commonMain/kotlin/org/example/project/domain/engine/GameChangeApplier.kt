@@ -1,23 +1,23 @@
-package org.example.project.data
+package org.example.project.domain.engine
 
-import org.example.project.UI.screen.game.GameState
-import org.example.project.data.models.cell.Cell
-import org.example.project.data.models.cell.StreetCell
-import org.example.project.data.models.game.ChangeGamePhase
-import org.example.project.data.models.game.ChangeGameStateProgress
-import org.example.project.data.models.game.ChangePlayerState
-import org.example.project.data.models.game.GameChange
-import org.example.project.data.models.game.GameTurnPhase
-import org.example.project.data.models.game.MakeTransaction
-import org.example.project.data.models.game.NextTurnGame
-import org.example.project.data.models.game.PlayerMoved
-import org.example.project.data.models.game.SetPlayerDoubleCount
-import org.example.project.data.models.game.SetPropertyOwner
-import org.example.project.data.models.game.SetRecentDices
-import org.example.project.data.models.game.SetTurnsInJail
-import org.example.project.data.models.game.SetUpgradeLevel
-import org.example.project.data.models.player.Player
-import org.example.project.data.models.player.PlayerState
+import org.example.project.domain.models.game.GameState
+import org.example.project.domain.models.cell.Cell
+import org.example.project.domain.models.cell.StreetCell
+import org.example.project.domain.models.game.ChangeGamePhase
+import org.example.project.domain.models.game.ChangeGameStateProgress
+import org.example.project.domain.models.game.ChangePlayerState
+import org.example.project.domain.models.game.GameChange
+import org.example.project.domain.models.game.GameTurnPhase
+import org.example.project.domain.models.game.MakeTransaction
+import org.example.project.domain.models.game.NextTurnGame
+import org.example.project.domain.models.game.PlayerMoved
+import org.example.project.domain.models.game.SetPlayerDoubleCount
+import org.example.project.domain.models.game.SetPropertyOwner
+import org.example.project.domain.models.game.SetRecentDices
+import org.example.project.domain.models.game.SetTurnsInJail
+import org.example.project.domain.models.game.SetUpgradeLevel
+import org.example.project.domain.models.player.Player
+import org.example.project.domain.models.player.PlayerState
 import kotlin.math.min
 
 object GameChangeApplier {
@@ -67,18 +67,11 @@ object GameChangeApplier {
             )
         }
 
-        println()
-        println(playerTo)
-        println(playerFrom)
-        println()
-
         val newPlayers: List<Player> = gameState.players.mapIndexed { index, player ->
             if ((playerFrom != null) && (index == gameChange.fromPlayerIndex)) playerFrom
             else if ((playerTo != null) && (index == gameChange.toPlayerIndex)) playerTo
             else player
         }
-        println(newPlayers)
-        println()
 
 
         val newGameState = gameState.copy(

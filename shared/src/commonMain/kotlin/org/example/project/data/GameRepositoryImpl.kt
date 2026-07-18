@@ -1,27 +1,28 @@
 package org.example.project.data
 
-import org.example.project.data.models.cell.Cell
-import org.example.project.data.models.cell.ChanceCell
-import org.example.project.data.models.cell.CommunityChestCell
-import org.example.project.data.models.cell.FreeParkingCell
-import org.example.project.data.models.cell.GoCell
-import org.example.project.data.models.cell.GoToJailCell
-import org.example.project.data.models.cell.JailCell
-import org.example.project.data.models.cell.PropertyStreet
-import org.example.project.data.models.cell.RailroadCell
-import org.example.project.data.models.cell.StreetCell
-import org.example.project.data.models.cell.TaxCell
-import org.example.project.data.models.cell.UtilityCell
-import org.example.project.UI.screen.game.GameState
-import org.example.project.data.models.game.GameStateProgress
-import org.example.project.data.models.player.Player
+import org.example.project.domain.GameRepository
+import org.example.project.domain.models.cell.Cell
+import org.example.project.domain.models.cell.ChanceCell
+import org.example.project.domain.models.cell.CommunityChestCell
+import org.example.project.domain.models.cell.FreeParkingCell
+import org.example.project.domain.models.cell.GoCell
+import org.example.project.domain.models.cell.GoToJailCell
+import org.example.project.domain.models.cell.JailCell
+import org.example.project.domain.models.cell.PropertyStreet
+import org.example.project.domain.models.cell.RailroadCell
+import org.example.project.domain.models.cell.StreetCell
+import org.example.project.domain.models.cell.TaxCell
+import org.example.project.domain.models.cell.UtilityCell
+import org.example.project.domain.models.game.GameState
+import org.example.project.domain.models.game.GameStateProgress
+import org.example.project.domain.models.player.Player
 import org.example.project.utils.Colors
 import kotlin.uuid.Uuid
 
-class GameRepository {
+class GameRepositoryImpl: GameRepository {
     private val games: MutableMap<String, GameState> = mutableMapOf()
 
-    fun createNewGame(players: List<Player>): String {
+    override fun createGame(players: List<Player>): String {
         val id = Uuid.random().toString()
 
         games[id] = GameState(
@@ -33,7 +34,7 @@ class GameRepository {
         return id
     }
 
-    fun getGame(id: String): GameState {
+    override fun getGameById(id: String): GameState {
         return games[id] ?: GameState()
     }
 }

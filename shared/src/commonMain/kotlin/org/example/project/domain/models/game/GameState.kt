@@ -1,9 +1,7 @@
-package org.example.project.UI.screen.game
+package org.example.project.domain.models.game
 
-import org.example.project.data.models.cell.Cell
-import org.example.project.data.models.player.Player
-import org.example.project.data.models.game.GameStateProgress
-import org.example.project.data.models.game.GameTurnPhase
+import org.example.project.domain.models.cell.Cell
+import org.example.project.domain.models.player.Player
 
 data class GameState(
     val gameStateProgress: GameStateProgress = GameStateProgress.ERROR,

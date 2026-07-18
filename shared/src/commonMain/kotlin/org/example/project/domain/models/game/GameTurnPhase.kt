@@ -1,4 +1,4 @@
-package org.example.project.data.models.game
+package org.example.project.domain.models.game
 
 enum class GameTurnPhase {
     START_TURN,

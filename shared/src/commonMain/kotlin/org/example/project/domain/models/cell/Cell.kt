@@ -1,4 +1,4 @@
-package org.example.project.data.models.cell
+package org.example.project.domain.models.cell
 
 sealed class Cell(val name: String)
 

@@ -4,15 +4,16 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import org.example.project.data.GameRepository
+import org.example.project.data.GameRepositoryImpl
+import org.example.project.domain.GameRepository
 import org.example.project.utils.colors
-import org.example.project.data.models.player.Player
+import org.example.project.domain.models.player.Player
 import kotlin.uuid.Uuid
 
 class EnterViewModel(
     private val gameRepository: GameRepository
 ): ViewModel() {
-    private val _state = MutableStateFlow(EnterState())
+    private val _state = MutableStateFlow(EnterScreenState())
 
     val state = _state.asStateFlow()
 
@@ -64,7 +65,7 @@ class EnterViewModel(
     }
 
     fun startGame(): String {
-        val id = gameRepository.createNewGame(players = state.value.players)
+        val id = gameRepository.createGame(players = state.value.players)
 
         _state.update {
             it.copy(

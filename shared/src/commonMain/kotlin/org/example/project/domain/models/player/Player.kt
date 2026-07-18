@@ -1,4 +1,4 @@
-package org.example.project.data.models.player
+package org.example.project.domain.models.player
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,10 +1,16 @@
-package org.example.project.data
+package org.example.project.domain.engine
 
-import org.example.project.UI.screen.game.GameState
-import org.example.project.data.models.cell.Cell
-import org.example.project.data.models.cell.StreetCell
-import org.example.project.data.models.game.*
-import org.example.project.data.models.player.PlayerState
+import org.example.project.domain.models.game.GameState
+import org.example.project.domain.models.cell.Cell
+import org.example.project.domain.models.cell.StreetCell
+import org.example.project.domain.models.game.BuyPropertyAction
+import org.example.project.domain.models.game.BuyUpgradeAction
+import org.example.project.domain.models.game.EndTurnAction
+import org.example.project.domain.models.game.GameAction
+import org.example.project.domain.models.game.GameTurnPhase
+import org.example.project.domain.models.game.SellUpgradeAction
+import org.example.project.domain.models.game.ThrowDiceAction
+import org.example.project.domain.models.player.PlayerState
 import kotlin.math.max
 import kotlin.math.min
 

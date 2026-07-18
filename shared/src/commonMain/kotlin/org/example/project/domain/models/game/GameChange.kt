@@ -1,6 +1,6 @@
-package org.example.project.data.models.game
+package org.example.project.domain.models.game
 
-import org.example.project.data.models.player.PlayerState
+import org.example.project.domain.models.player.PlayerState
 
 sealed class GameChange
 

@@ -1,11 +1,6 @@
-package org.example.project.data.models.cell
+package org.example.project.domain.models.cell
 
 import androidx.compose.ui.graphics.Color
-import org.example.project.UI.screen.game.GameState
-import org.example.project.data.models.player.Player
-import kotlin.math.max
-import kotlin.math.min
-
 
 sealed class Property(
     open val name: String,

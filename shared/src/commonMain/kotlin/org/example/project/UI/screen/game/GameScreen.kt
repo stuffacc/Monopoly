@@ -21,9 +21,26 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import monopoly.shared.generated.resources.*
-import org.example.project.data.models.cell.*
-import org.example.project.data.models.game.*
-import org.example.project.data.models.player.Player
+import org.example.project.domain.models.cell.Cell
+import org.example.project.domain.models.cell.ChanceCell
+import org.example.project.domain.models.cell.CommunityChestCell
+import org.example.project.domain.models.cell.FreeParkingCell
+import org.example.project.domain.models.cell.GoCell
+import org.example.project.domain.models.cell.GoToJailCell
+import org.example.project.domain.models.cell.JailCell
+import org.example.project.domain.models.cell.RailroadCell
+import org.example.project.domain.models.cell.StreetCell
+import org.example.project.domain.models.cell.TaxCell
+import org.example.project.domain.models.cell.UtilityCell
+import org.example.project.domain.models.game.BuyPropertyAction
+import org.example.project.domain.models.game.BuyUpgradeAction
+import org.example.project.domain.models.game.EndTurnAction
+import org.example.project.domain.models.game.GameAction
+import org.example.project.domain.models.game.GameState
+import org.example.project.domain.models.game.GameStateProgress
+import org.example.project.domain.models.game.SellUpgradeAction
+import org.example.project.domain.models.game.ThrowDiceAction
+import org.example.project.domain.models.player.Player
 import org.example.project.utils.Colors
 import org.jetbrains.compose.resources.painterResource
 
@@ -35,7 +52,11 @@ fun Board(viewModel: GameViewModel, gameId: String) {
 
     val state by viewModel.state.collectAsState()
 
-    when (state.gameStateProgress) {
+    val gameState = state.gameState
+    val cellClicked = state.cellClicked
+    val availableActions = state.availableActions
+
+    when (gameState.gameStateProgress) {
         GameStateProgress.LOADING -> {
             print("LOAD")
         }
@@ -44,7 +65,13 @@ fun Board(viewModel: GameViewModel, gameId: String) {
             print("ERROR")
         }
 
-        GameStateProgress.IN_PROGRESS -> BoardSuccess(gameState = state, viewModel = viewModel)
+        GameStateProgress.IN_PROGRESS -> BoardSuccess(
+            gameState = gameState,
+            cellClicked = cellClicked,
+            availableActions = availableActions,
+            viewModel = viewModel
+        )
+
         GameStateProgress.FINISHED -> {
             print("FINISHED")
         }
@@ -53,14 +80,10 @@ fun Board(viewModel: GameViewModel, gameId: String) {
 
 
 @Composable
-fun BoardSuccess(gameState: GameState, viewModel: GameViewModel) {
+fun BoardSuccess(gameState: GameState, cellClicked: Int, availableActions: List<GameAction>, viewModel: GameViewModel) {
     val cells = gameState.cells
 
     val playersGroup = gameState.players.groupBy { it.position }
-
-    println("RECOMP BoardSuccess")
-    println(gameState)
-    println()
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val cellWidth = (maxWidth) / 11
@@ -117,6 +140,8 @@ fun BoardSuccess(gameState: GameState, viewModel: GameViewModel) {
                 ) {
                     centerBox(
                         gameState = gameState,
+                        cellClicked = cellClicked,
+                        availableActions = availableActions,
                         viewModel = viewModel,
                         cellWidth = cellWidth,
                         cellHeight = cellHeight
@@ -191,48 +216,6 @@ fun Cell(cellId: Int, cell: Cell, players: List<Player>?, viewModel: GameViewMod
                 cellWidth = cellWidth
             )
 
-            is ChanceCell -> ChanceCell(
-                chanceCell = cell,
-                players = players,
-                cellHeight = cellHeight,
-                cellWidth = cellWidth
-            )
-
-            is CommunityChestCell -> CommunityChestCell(
-                communityChestCell = cell,
-                players = players,
-                cellHeight = cellHeight,
-                cellWidth = cellWidth
-            )
-
-            is FreeParkingCell -> FreeParkingCell(
-                freeParkingCell = cell,
-                players = players,
-                cellHeight = cellHeight,
-                cellWidth = cellWidth
-            )
-
-            is GoToJailCell -> GoToJailCell(
-                goToJailCell = cell,
-                players = players,
-                cellHeight = cellHeight,
-                cellWidth = cellWidth
-            )
-
-            is JailCell -> JailCell(
-                jailCell = cell,
-                players = players,
-                cellHeight = cellHeight,
-                cellWidth = cellWidth
-            )
-
-            is RailroadCell -> RailroadCell(
-                railroadCell = cell,
-                players = players,
-                cellHeight = cellHeight,
-                cellWidth = cellWidth
-            )
-
             is TaxCell -> TaxCell(
                 taxCell = cell,
                 players = players,
@@ -240,11 +223,50 @@ fun Cell(cellId: Int, cell: Cell, players: List<Player>?, viewModel: GameViewMod
                 cellWidth = cellWidth
             )
 
-            is UtilityCell -> UtilityCell(
-                utilityCell = cell,
-                players = players,
-                cellHeight = cellHeight,
-                cellWidth = cellWidth
+            else -> OtherCell(cell = cell, players = players, cellWidth = cellWidth, cellHeight = cellHeight)
+        }
+    }
+}
+
+@Composable
+fun OtherCell(cell: Cell, players: List<Player>?, cellWidth: Dp, cellHeight: Dp) {
+    val image = when (cell) {
+        is ChanceCell -> Res.drawable.chance
+        is CommunityChestCell -> Res.drawable.communityChest
+        is FreeParkingCell -> Res.drawable.freeParking
+        is GoToJailCell -> Res.drawable.goToJail
+        is JailCell -> Res.drawable.jail
+        is RailroadCell -> Res.drawable.railway
+        is UtilityCell -> Res.drawable.utility
+        else -> null
+    }
+
+    Column(
+        modifier = Modifier
+            .width(cellWidth)
+            .height(cellHeight)
+            .border(1.dp, Colors.BLACK)
+    ) {
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            text = cell.name,
+            fontSize = 12.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        DrawPlayers(players = players, cellHeight = cellHeight)
+
+        if (image != null) {
+            Image(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                painter = painterResource(image),
+                contentDescription = null
             )
         }
     }
@@ -316,198 +338,11 @@ fun GoCell(goCell: GoCell, players: List<Player>?, cellWidth: Dp, cellHeight: Dp
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            text = "200KK",
+            text = "200K",
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-
-@Composable
-fun ChanceCell(chanceCell: ChanceCell, players: List<Player>?, cellWidth: Dp, cellHeight: Dp) {
-    Column(
-        modifier = Modifier
-            .width(cellWidth)
-            .height(cellHeight)
-            .border(1.dp, Colors.BLACK)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            text = chanceCell.name,
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        DrawPlayers(players = players, cellHeight = cellHeight)
-
-        Image(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            painter = painterResource(Res.drawable.chance),
-            contentDescription = null
-        )
-    }
-}
-
-@Composable
-fun CommunityChestCell(communityChestCell: CommunityChestCell, players: List<Player>?, cellWidth: Dp, cellHeight: Dp) {
-    Column(
-        modifier = Modifier
-            .width(cellWidth)
-            .height(cellHeight)
-            .border(1.dp, Colors.BLACK)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            text = communityChestCell.name,
-            fontSize = 10.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        DrawPlayers(players = players, cellHeight = cellHeight)
-
-        Image(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            painter = painterResource(Res.drawable.communityChest),
-            contentDescription = null
-        )
-    }
-}
-
-@Composable
-fun FreeParkingCell(freeParkingCell: FreeParkingCell, players: List<Player>?, cellWidth: Dp, cellHeight: Dp) {
-    Column(
-        modifier = Modifier
-            .width(cellWidth)
-            .height(cellHeight)
-            .border(1.dp, Colors.BLACK)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            text = freeParkingCell.name,
-            fontSize = 10.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        DrawPlayers(players = players, cellHeight = cellHeight)
-
-        Image(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            painter = painterResource(Res.drawable.freeParking),
-            contentDescription = null
-        )
-    }
-}
-
-@Composable
-fun GoToJailCell(goToJailCell: GoToJailCell, players: List<Player>?, cellWidth: Dp, cellHeight: Dp) {
-    Column(
-        modifier = Modifier
-            .width(cellWidth)
-            .height(cellHeight)
-            .border(1.dp, Colors.BLACK)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            text = goToJailCell.name,
-            fontSize = 10.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        DrawPlayers(players = players, cellHeight = cellHeight)
-
-        Image(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            painter = painterResource(Res.drawable.goToJail),
-            contentDescription = null
-        )
-    }
-}
-
-@Composable
-fun JailCell(jailCell: JailCell, players: List<Player>?, cellWidth: Dp, cellHeight: Dp) {
-    Column(
-        modifier = Modifier
-            .width(cellWidth)
-            .height(cellHeight)
-            .border(1.dp, Colors.BLACK)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            text = jailCell.name,
-            fontSize = 10.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        DrawPlayers(players = players, cellHeight = cellHeight)
-
-        Image(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            painter = painterResource(Res.drawable.jail),
-            contentDescription = null
-        )
-    }
-}
-
-@Composable
-fun RailroadCell(railroadCell: RailroadCell, players: List<Player>?, cellWidth: Dp, cellHeight: Dp) {
-    Column(
-        modifier = Modifier
-            .width(cellWidth)
-            .height(cellHeight)
-            .border(1.dp, Colors.BLACK)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            text = railroadCell.name,
-            fontSize = 10.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        DrawPlayers(players = players, cellHeight = cellHeight)
-
-        Image(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            painter = painterResource(Res.drawable.railway),
-            contentDescription = null
         )
     }
 }
@@ -538,37 +373,6 @@ fun TaxCell(taxCell: TaxCell, players: List<Player>?, cellWidth: Dp, cellHeight:
                 .fillMaxWidth()
                 .weight(1f),
             painter = painterResource(Res.drawable.tax),
-            contentDescription = null
-        )
-    }
-}
-
-@Composable
-fun UtilityCell(utilityCell: UtilityCell, players: List<Player>?, cellWidth: Dp, cellHeight: Dp) {
-    Column(
-        modifier = Modifier
-            .width(cellWidth)
-            .height(cellHeight)
-            .border(1.dp, Colors.BLACK)
-    ) {
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            text = utilityCell.name,
-            fontSize = 10.sp,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        DrawPlayers(players = players, cellHeight = cellHeight)
-
-        Image(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            painter = painterResource(Res.drawable.utility),
             contentDescription = null
         )
     }
@@ -609,11 +413,18 @@ fun DrawPlayers(players: List<Player>?, cellHeight: Dp) {
 }
 
 @Composable
-fun centerBox(gameState: GameState, viewModel: GameViewModel, cellWidth: Dp, cellHeight: Dp) {
-    val stateClick by viewModel.stateClick.collectAsState()
-    val stateAvailableActions by viewModel.stateAvailableActions.collectAsState()
+fun centerBox(
+    gameState: GameState,
+    cellClicked: Int,
+    availableActions: List<GameAction>,
+    viewModel: GameViewModel,
+    cellWidth: Dp,
+    cellHeight: Dp
+) {
+
 
     val player = gameState.players[gameState.playerTurn]
+
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -651,7 +462,7 @@ fun centerBox(gameState: GameState, viewModel: GameViewModel, cellWidth: Dp, cel
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        val cell = gameState.cells[stateClick]
+        val cell = gameState.cells[cellClicked]
 
         if (cell is StreetCell) {
             CellStreetDetailed(
@@ -660,11 +471,9 @@ fun centerBox(gameState: GameState, viewModel: GameViewModel, cellWidth: Dp, cel
                 cellHeight = cellHeight * 4,
                 cellWidth = cellWidth * 4
             )
-        }
-
-        else {
+        } else {
             Cell(
-                cellId = stateClick,
+                cellId = cellClicked,
                 cell = cell,
                 cellHeight = cellHeight * 4,
                 cellWidth = cellWidth * 4,
@@ -675,7 +484,7 @@ fun centerBox(gameState: GameState, viewModel: GameViewModel, cellWidth: Dp, cel
 
 
 
-        for (action in stateAvailableActions) {
+        for (action in availableActions) {
             when (action) {
                 is BuyPropertyAction -> {
                     Button(
@@ -715,6 +524,7 @@ fun centerBox(gameState: GameState, viewModel: GameViewModel, cellWidth: Dp, cel
                         Text("Купить улучшение")
                     }
                 }
+
                 is SellUpgradeAction -> {
                     Button(
                         modifier = Modifier
@@ -803,8 +613,7 @@ fun CellStreetDetailed(gameState: GameState, streetCell: StreetCell, cellHeight:
                     colorFilter = ColorFilter.tint(Colors.YELLOW),
                     contentDescription = null
                 )
-            }
-            else {
+            } else {
                 for (i in 0 until streetCell.propertyStreet.improvementLevel) {
                     Image(
                         modifier = Modifier

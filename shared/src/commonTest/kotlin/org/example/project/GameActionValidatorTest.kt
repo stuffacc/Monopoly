@@ -1,16 +1,17 @@
 package org.example.project
 
 import androidx.compose.ui.graphics.Color
-import org.example.project.UI.screen.game.GameState
-import org.example.project.data.GameActionValidator
-import org.example.project.data.GameChangeApplier
-import org.example.project.data.GameEngine
+import org.example.project.domain.models.game.GameState
+import org.example.project.domain.engine.GameActionValidator
+import org.example.project.domain.engine.GameChangeApplier
 import org.example.project.data.createField
-import org.example.project.data.models.cell.StreetCell
-import org.example.project.data.models.game.*
-import org.example.project.data.models.player.Player
+import org.example.project.domain.models.game.BuyUpgradeAction
+import org.example.project.domain.models.game.GameChange
+import org.example.project.domain.models.game.GameStateProgress
+import org.example.project.domain.models.game.MakeTransaction
+import org.example.project.domain.models.game.SetPropertyOwner
+import org.example.project.domain.models.player.Player
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
