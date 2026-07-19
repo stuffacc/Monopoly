@@ -156,10 +156,7 @@ object GameChangeApplier {
         )
     }
 
-    private fun changeGameStateProgressGameChange(
-        gameState: GameState,
-        gameChange: ChangeGameStateProgress
-    ): GameState {
+    private fun changeGameStateProgressGameChange(gameState: GameState, gameChange: ChangeGameStateProgress): GameState {
         return gameState.copy(
             gameStateProgress = gameChange.nextStateProgress
         )
