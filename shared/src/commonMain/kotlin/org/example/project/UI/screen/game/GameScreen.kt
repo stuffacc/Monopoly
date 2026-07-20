@@ -375,6 +375,17 @@ fun TaxCell(taxCell: TaxCell, players: List<Player>?, cellWidth: Dp, cellHeight:
             painter = painterResource(Res.drawable.tax),
             contentDescription = null
         )
+
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            text = taxCell.taxValue.toString(),
+            fontSize = 10.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
@@ -558,8 +569,6 @@ fun centerBox(
 
 @Composable
 fun CellStreetDetailed(gameState: GameState, streetCell: StreetCell, cellHeight: Dp, cellWidth: Dp) {
-    print(gameState)
-
     Column(
         modifier = Modifier
             .width(cellWidth)

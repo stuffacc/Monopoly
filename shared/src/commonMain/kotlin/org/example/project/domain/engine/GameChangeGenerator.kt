@@ -38,7 +38,7 @@ object GameChangeGenerator {
                 )
             )
         }
-        // TODO: END, BUY if unvailable END TURN
+        // TODO: END, BUY if unavailable END TURN
 
         return when (gameAction) {
             is ThrowDiceAction -> processThrowDiceAction(gameState, gameAction)

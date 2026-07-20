@@ -46,6 +46,7 @@ fun EnterScreen(
                 modifier = Modifier
                     .weight(5f),
                 value = state.name,
+                maxLines = 1,
                 onValueChange = {
                     viewModel.changeName(it)
                 }
