@@ -32,6 +32,10 @@
 - GUI (Compose Multiplatform)
 - CLI
 
+## Архитектура
+
+[Диаграмма классов](diagram.md)
+
 ## Установка
 
 ```bash
