@@ -2,6 +2,7 @@
 
 ```mermaid
 classDiagram
+    direction LR
     class GameState {
         +GameStateProgress gameStateProgress
         +List~Player~ players
