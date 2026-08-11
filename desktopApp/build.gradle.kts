@@ -10,8 +10,6 @@ dependencies {
     implementation(projects.shared)
 
     implementation(compose.desktop.currentOs)
-    implementation(libs.kotlinx.coroutinesSwing)
-
     implementation(libs.compose.uiToolingPreview)
 }
 
