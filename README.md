@@ -65,11 +65,11 @@ git clone git@github.com:stuffacc/Monopoly.git
 ## Запуск Console App
 
 ```bash
-/gradlew :consoleApp:instalDist
+./gradlew :consoleApp:instalDist
 ```
 
 ```bash
-./gradlew :consoleApp:run
+consoleApp/build/install/consoleApp/bin/consoleApp
 ```
 
 ## Запуск Desktop App
