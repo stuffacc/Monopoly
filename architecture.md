@@ -80,17 +80,17 @@ classDiagram
     }
 
     namespace domain.engine {
-        class GameEngine <<object>> {
+        class GameEngine ~object~ {
             +handle(GameState, GameAction) GameState
             +getAvailableActions(GameState, int) List~GameAction~
         }
-        class GameActionValidator <<object>> {
+        class GameActionValidator ~object~ {
             +isActionAvailable(GameState, GameAction) Boolean
         }
-        class GameChangeGenerator <<object>> {
+        class GameChangeGenerator ~object~ {
             +processAction(GameState, GameAction) List~GameChange~
         }
-        class GameChangeApplier <<object>> {
+        class GameChangeApplier ~object~ {
             +applyGameChanges(GameState, List~GameChange~) GameState
         }
     }
@@ -121,14 +121,14 @@ classDiagram
     }
 
     namespace domain.repository {
-        class GameRepository <<interface>> {
+        class GameRepository ~interface~ {
             +createGame(List~Player~) String
             +getGameById(String) GameState
         }
-        class PlayerRepository <<interface>> {
+        class PlayerRepository ~interface~ {
             +createPlayersForGame(List~SendPlayer~) List~Player~
         }
-        class RandomValueGenerator <<interface>> {
+        class RandomValueGenerator ~interface~ {
             +generate() int
         } 
     }
