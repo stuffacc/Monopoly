@@ -42,7 +42,6 @@ classDiagram
             +parse(String, List~GameAction~) CommandCLI
         }
         class CommandCLI~sealed interface~ {
-            <<sealed interface>>
         }
         class SelectCellCommand {
             +int cellId

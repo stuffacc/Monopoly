@@ -13,7 +13,6 @@ classDiagram
         +Pair~Int,Int~ lastDices
     }
     class GameTurnPhase~enum~ {
-        <<enumeration>>
         START_TURN
         BUY_PROPERTY
         END_TURN
@@ -30,14 +29,12 @@ classDiagram
         +int doubleCount
     }
     class PlayerState~enum~ {
-        <<enumeration>>
         IN_JAIL
         IN_GAME
         NOT_IN_GAME
     }
 
     class Cell~sealed~ {
-        <<sealed>>
         +String name
     }
     class GoCell
@@ -55,7 +52,6 @@ classDiagram
     class GoToJailCell
 
     class Property~sealed~ {
-        <<sealed>>
         +String name
         +int cost
         +Integer ownerIndex
@@ -66,7 +62,6 @@ classDiagram
     }
 
     class Color~enum~ {
-        <<enumeration>>
         BROWN
         YELLOW
         BLUE
@@ -83,7 +78,6 @@ classDiagram
 
 
     class GameAction~sealed~ {
-        <<sealed>>
     }
     class ThrowDiceAction {
         +int dice1
@@ -103,7 +97,6 @@ classDiagram
 
 
     class GameChange~sealed~ {
-        <<sealed>>
     }
     class PlayerMoved {
         +int playerIndex
