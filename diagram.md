@@ -1,10 +1,10 @@
-# Architecture Diagram
+# Class Diagram
 
 ```mermaid
 classDiagram
     direction LR
     class GameState {
-        +GameStateProgress gameStateProgress
+        +boolean isFinished
         +List~Player~ players
         +List~Cell~ cells
         +int turnCount
@@ -18,14 +18,6 @@ classDiagram
         BUY_PROPERTY
         END_TURN
     }
-    class GameStateProgress~enum~ {
-        <<enumeration>>
-        LOADING
-        ERROR
-        IN_PROGRESS
-        FINISHED
-    }
-
 
     class Player {
         +String id
@@ -42,18 +34,6 @@ classDiagram
         IN_JAIL
         IN_GAME
         NOT_IN_GAME
-    }
-    class Color~enum~ {
-        <<enumeration>>
-        BROWN
-        YELLOW
-        BLUE
-        DARK_BLUE
-        VIOLET
-        ORANGE
-        RED
-        GREEN
-        BLACK
     }
 
     class Cell~sealed~ {
@@ -83,6 +63,19 @@ classDiagram
     class PropertyStreet {
         +Color streetColor
         +int improvementLevel
+    }
+
+    class Color~enum~ {
+        <<enumeration>>
+        BROWN
+        YELLOW
+        BLUE
+        DARK_BLUE
+        VIOLET
+        ORANGE
+        RED
+        GREEN
+        BLACK
     }
 
 
@@ -138,8 +131,8 @@ classDiagram
         +int playerIndexBefore
         +int playerIndexAfter
     }
-    class ChangeGameStateProgress {
-        +GameStateProgress nextStateProgress
+    class ChangeGameIsFinished {
+        +boolean isFinished
     }
     class SetTurnsInJail {
         +int playerIndex
@@ -157,48 +150,7 @@ classDiagram
     class SetRecentDices {
         +Pair~Int,Int~ dices
     }
-
-
-    class GameEngine {
-        +handle(GameState, GameAction) GameState
-        +getAvailableActions(GameState, int) List~GameAction~
-    }
-    class GameActionValidator {
-        +isActionAvailable(GameState, GameAction) Boolean
-    }
-    class GameChangeGenerator {
-        +processAction(GameState, GameAction) List~GameChange~
-    }
-    class GameChangeApplier {
-        +applyGameChanges(GameState, List~GameChange~) GameState
-    }
-
-    class GameRepository~interface~ {
-        <<interface>>
-        +createGame(List~Player~) String
-        +getGameById(String) GameState
-    }
-    class GameRepositoryImpl {
-        -MutableMap~String, GameState~ games
-    }
-
-    class SendActionUsecase {
-        +execute(GameState, GameAction) GameState
-    }
-    class GetAvailableActionUsecase {
-        +execute(GameState, int) List~GameAction~
-    }
-    class RandomValueGenerator {
-        +generate() int
-    }
-    
-    class EnterViewModel {
-        +StateFlow~EnterScreenState~ state
-    }
-    class GameViewModel {
-        +StateFlow~GameScreenState~ state
-    }
-    class App
+    GameState --> GameTurnPhase
 
     GameAction <|-- ThrowDiceAction
     GameAction <|-- BuyPropertyAction
@@ -211,11 +163,12 @@ classDiagram
     GameChange <|-- ChangeGamePhase
     GameChange <|-- SetPlayerDoubleCount
     GameChange <|-- NextTurnGame
-    GameChange <|-- ChangeGameStateProgress
+    GameChange <|-- ChangeGameIsFinished
     GameChange <|-- SetTurnsInJail
     GameChange <|-- SetUpgradeLevel
     GameChange <|-- MakeTransaction
     GameChange <|-- SetRecentDices
+    
     Cell <|-- GoCell
     Cell <|-- StreetCell
     Cell <|-- CommunityChestCell
@@ -228,21 +181,8 @@ classDiagram
     Cell <|-- GoToJailCell
     Property <|-- PropertyStreet
     StreetCell --> PropertyStreet : propertyStreet
-    GameEngine --> GameActionValidator
-    GameEngine --> GameChangeGenerator
-    GameEngine --> GameChangeApplier
-    SendActionUsecase --> GameEngine
-    SendActionUsecase --> RandomValueGenerator
-    GetAvailableActionUsecase --> GameEngine
-    GameRepository <|.. GameRepositoryImpl
-    EnterViewModel --> GameRepository
-    GameViewModel --> GameRepository
-    GameViewModel --> SendActionUsecase
-    GameViewModel --> GetAvailableActionUsecase
-    GameState --> GameStateProgress
-    GameState --> GameTurnPhase
+    
+    
     Player --> PlayerState
-    App --> EnterViewModel
-    App --> GameViewModel
     PropertyStreet --> Property
 ```
