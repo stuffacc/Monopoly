@@ -11,6 +11,9 @@ dependencies {
 
     implementation(compose.desktop.currentOs)
     implementation(libs.compose.uiToolingPreview)
+    implementation(libs.compose.components.resources)
+
+    implementation(libs.navigation.compose)
 }
 
 compose.desktop {
