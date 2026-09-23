@@ -125,7 +125,12 @@ class Render {
                     printColored(color = owner.color, text = owner.name)
                 }
 
-                println("\nУровень улучшения: ${cell.propertyStreet.improvementLevel}")
+                println("\nСтоимость дома: ${cell.propertyStreet.houseCost}")
+                println("Стоимость отеля: ${cell.propertyStreet.houseCost * 5}")
+                println("Уровень улучшения: ${cell.propertyStreet.improvementLevel}")
+
+                println("Аренда: ${cell.propertyStreet.rent}")
+
                 println("Стоимость: ${cell.propertyStreet.cost}")
             }
 

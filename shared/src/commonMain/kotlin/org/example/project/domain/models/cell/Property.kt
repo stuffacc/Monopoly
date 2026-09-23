@@ -12,6 +12,13 @@ data class PropertyStreet(
     override val name: String,
     override val cost: Int,
     override val ownerIndex: Int? = null,
+    /*
+    * 0 - base rent
+    * 1-4 rent with houses
+    * 5 - hotel rent
+    * */
+    val rent: List<Int>,
+    val houseCost: Int,
     val streetColor: Color,
     val improvementLevel: Int = 0
 ) : Property(name = name, cost = cost, ownerIndex = ownerIndex)

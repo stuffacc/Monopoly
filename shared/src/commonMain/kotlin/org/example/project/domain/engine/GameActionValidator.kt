@@ -78,7 +78,7 @@ object GameActionValidator {
             minUpgradeLevel = min(minUpgradeLevel, cellSameColor.propertyStreet.improvementLevel)
         }
 
-        val upgradeCost = if (levelUpdate < 4) cell.propertyStreet.cost else cell.propertyStreet.cost * 2
+        val upgradeCost = if (levelUpdate < 4) cell.propertyStreet.houseCost else cell.propertyStreet.houseCost * 5
 
         return (levelUpdate == minUpgradeLevel) && (levelUpdate < 5) && (balance >= upgradeCost)
     }

@@ -26,7 +26,7 @@ object GameChangeGenerator {
             is StreetCell -> {
                 val levelUpdate = cell.propertyStreet.improvementLevel
 
-                val sellCost = if (levelUpdate < 5) cell.propertyStreet.cost / 2 else cell.propertyStreet.cost
+                val sellCost = if (levelUpdate < 5) cell.propertyStreet.houseCost / 2 else cell.propertyStreet.houseCost * 5 / 2
 
                 return listOf(
                     MakeTransaction(
@@ -54,7 +54,7 @@ object GameChangeGenerator {
             is StreetCell -> {
                 val levelUpdate = cell.propertyStreet.improvementLevel
 
-                val upgradeCost = if (levelUpdate < 4) cell.propertyStreet.cost else cell.propertyStreet.cost * 2
+                val upgradeCost = if (levelUpdate < 4) cell.propertyStreet.houseCost else cell.propertyStreet.houseCost * 5
 
                 listOf(
                     MakeTransaction(
@@ -272,11 +272,20 @@ object GameChangeGenerator {
                 )
             )
         } else if (propertyOwnerIndex != playerIndex) {
+            val cellsSameColor = getCellsSameColor(gameState.cells, streetCell = cell)
+
+            val amount = if ((cell.propertyStreet.improvementLevel == 0) && (ownsAllSameColor(cellsSameColor, playerIndex = propertyOwnerIndex))) {
+                cell.propertyStreet.rent[0] * 2
+            }
+            else {
+                cell.propertyStreet.rent[cell.propertyStreet.improvementLevel]
+            }
+
             gameChanges.add(
                 MakeTransaction(
-                    fromPlayerIndex = gameState.playerTurn,
+                    fromPlayerIndex = playerIndex,
                     toPlayerIndex = propertyOwnerIndex,
-                    amount = cell.propertyStreet.cost
+                    amount = amount
                 )
             )
 
@@ -297,6 +306,26 @@ object GameChangeGenerator {
         }
 
         return gameChanges
+    }
+
+
+    private fun ownsAllSameColor(cellsSameColor: List<StreetCell>, playerIndex: Int): Boolean {
+        return cellsSameColor.all {
+            it.propertyStreet.ownerIndex == playerIndex
+        }
+    }
+
+
+    private fun getCellsSameColor(cells: List<Cell>, streetCell: StreetCell): List<StreetCell> {
+        val cellsSameColor = mutableListOf<StreetCell>()
+
+        for (cell in cells) {
+            if ((cell is StreetCell) && (cell.propertyStreet.streetColor == streetCell.propertyStreet.streetColor)) {
+                cellsSameColor.add(cell)
+            }
+        }
+
+        return cellsSameColor
     }
 
     private fun tryLeaveJail(gameState: GameState, gameAction: ThrowDiceAction): List<GameChange> {
