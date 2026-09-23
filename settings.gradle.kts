@@ -6,8 +6,6 @@ pluginManagement {
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
-                includeGroupAndSubgroups("com.android")
-                includeGroupAndSubgroups("com.google")
             }
         }
         mavenCentral()
@@ -20,18 +18,12 @@ dependencyResolutionManagement {
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
-                includeGroupAndSubgroups("com.android")
-                includeGroupAndSubgroups("com.google")
             }
         }
         mavenCentral()
     }
 }
 
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
-
-include(":desktopApp")
 include(":shared")
-include("consoleApp")
+include(":desktopApp")
+include(":consoleApp")
